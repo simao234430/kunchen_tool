@@ -52,13 +52,15 @@ return true;
     <div id="center">
         <h1>时间戳数据分析</h1>
         <form id="Form1" action="#" method="post" enctype="multipart/form-data" >
-        输入精度最小值 <input type="text" value="1" name="inputmin" /><P>
-        输入精度最大值 <input type="text" value="5" name="inputmax" />
+        输入精度最小值 <input type="text" value="1" name="inputmin"    class="form-control" /><P>
+        输入精度最大值 <input type="text" value="5" name="inputmax"    class="form-control"/><p>
+        输入数据开始列<input type="text" value="7" name="input_start"  class="form-control"/><P>
+        输入基站总个数<input type="text" value="6" name="input_count"  class="form-control"/><P>
         <br /> 
-	    <input type="file" name="inputfile" />
-        <input type="submit" value="返回时间戳分析结果" /> 
-        </form> 
+	    <input type="file" name="inputfile" class="input-large" />
+        <input type="submit" value="返回时间戳分析结果" class="btn btn-success" /> 
     </div>
   </body>
 </html>
 
+        </form> 

@@ -30,6 +30,12 @@ from tool import covert_image_format,get_mean_and_var,zhfont1,generate_zipfile
 #import tool
 import time
 
+class FileException(Exception):
+    def __init__(self):
+        pass
+    def __str__(self):
+        return "文件输入格式不对，请检查"
+
 #class Timer(object):
 #    def __init__(self, verbose=False):
 #        self.verbose = verbose
@@ -54,13 +60,18 @@ import time
 #    return callf
 
 
+unit = 33.333
 count_size = 100 #分析时间戳差分布所取步长
-number = 6       #基站数量
-index = 7        #时间戳差最开始的列数字
+#number = 6       #基站数量
+#index = 7        #时间戳差最开始的列数字
+
+#number = 4       #基站数量
+#index = 23        #时间戳差最开始的列数字
 #下面三行生成所用到的数据列的选择下标
-max_value = 20
-col = range(max_value) 
-use_cols = col[index:index + number] 
+max_value = 40
+#col = range(max_value) 
+#use_cols = col[index:index + number] 
+#print use_cols
 
 
 #生成一个list 包含 组合 元组 类似这样的结构 [(0, 1), (0, 2) ....]
@@ -81,12 +92,25 @@ def sortedDictValues(adict):
 def two_list_sub(l1,l2):
     return list(map(lambda (a,b):a-b, zip(l2,l1)))
 
-def parse_timestamp_data(file,dir):
+def parse_timestamp_data(file,dir,start,count):
     # 读入csv 源文件  use_cols 选取要操作的列 过滤其他不需要的列
-    df= pd.read_csv(file,usecols = use_cols,header=None)
-    # 下面2行 由于保留小数点后面三位 整体转换为int类型 方便计算
-    float_data = df.applymap(lambda x: x*1000) 
-    data = float_data.astype('int64')
+    try:
+        print start,count
+        start_para = int(start)
+        end_para = int(start) + int(count)
+        print start_para,end_para
+        col = range(max_value) 
+        use_cols = col[start_para:end_para]
+        print "use_cols",use_cols
+        df= pd.read_csv(file,usecols = use_cols,header=None)
+        print df
+        # 下面2行 由于保留小数点后面三位 整体转换为int类型 方便计算
+        float_data = df.applymap(lambda x: x*1000) 
+        data = float_data.astype('int64')
+    except Exception, e:
+        print "excp", e
+        traceback.print_exc()
+        raise FileException
     #global_min =int(data.min().min())
     #sort_data = data.sort_index(axis = 1)
     #print sort_data
@@ -96,7 +120,8 @@ def parse_timestamp_data(file,dir):
     
     count_map_detail = {}
     count_map_result= {}
-    for i in range(data[index].size):
+    #start_para 只是为了行遍历
+    for i in range(data[start_para].size):
         temp_map  =  {}
         for j in use_cols:
             #temp_map 前面是时间差 后面是基站序号
@@ -125,12 +150,14 @@ def parse_timestamp_data(file,dir):
     data_map_index = sorted(count_map.items(), key=lambda d: d[1],reverse=True)[0][0]
     #data_map 就是次数出现最多的 {239421893: 11, 239420911: 8, 239417008: 12, 239420273: 9, 239422645: 10, 239421721: 7}
 
+    #data_map 是排序后的原来逻辑序号
     data_map = count_map_result[data_map_index]
-    #print data_map
+    print data_map
     
     
     #data_sheet_list 是有序的 通过data_map 去找 已经排好序的 下标 也可以保障有序
-    data_sheet_list = generate_list_item()
+    data_sheet_list = generate_list_item(int(count))
+    print "data_sheet_list",data_sheet_list
     data_sheet_input = {}
     #global_min = sys.maxint
     #global_max= int(data.max().max()) - int(data.min().min()) + 1 
@@ -140,7 +167,9 @@ def parse_timestamp_data(file,dir):
         #print data[data_map[
         small = i[0]
         big= i[1]
+        print small,big
         s = "table" + str(small) + "_" + str(big)
+        print s
         x = []
         v1 = data[data_map[small]].tolist()
         v2 = data[data_map[big]].tolist()
@@ -157,7 +186,8 @@ def parse_timestamp_data(file,dir):
         #temp = map(lambda x: y-z, zip(v2, v1))
     # data_sheet_input 这时候就是时间戳差  count_map_detail[data_map_index]
     #就是误差数据 在下面的处理中要过滤掉的
-    return data_sheet_input, count_map_detail[data_map_index]
+    #print data_sheet_input
+    return data_sheet_input, count_map_detail[data_map_index],data_map
 
 
 def get_max(data):
@@ -305,7 +335,6 @@ def generate_image_timestamp_diff(data,name,max_x_width,dir_path,min_ = 1 ,max_ 
     #print type(data),data
     sns.kdeplot(data,color='#FF0000', shade=True, lw=1,legend = True)
 
-    unit = 33.333
         #1 cm 精度
     mu, sigma = np.median(data),unit
     #mu, sigma = data[index].mean(),data[index].std()
@@ -356,7 +385,7 @@ def get_max_range(data):
 
 
 
-def write_data(data,select_array,global_min,global_max,dir_path,min_,max_):
+def write_data(data,select_array,global_min,global_max,dir_path,min_,max_,count):
     #print select_array
     try:
         #print select_array
@@ -385,6 +414,7 @@ def write_data(data,select_array,global_min,global_max,dir_path,min_,max_):
 
         std_map= {}
         for index, i in enumerate(sorted(data.keys())):
+            print index,i
             ws = w.add_worksheet(i)
             #去掉错误的数据 通过select_array过滤
             #print len(data[i])
@@ -392,11 +422,16 @@ def write_data(data,select_array,global_min,global_max,dir_path,min_,max_):
             #print "type $$$$",type(filter_data)
             add_col_data(ws,filter_data,global_min,global_max,str(i),max_x_width,min_,max_,dir_path)
             #print type(data[i])
+            #print "data[i]",data[i]
+            #return
             std_map[index] =  np.array(data[i]).std()
+
+            #single_map[i] = np.array(data[i]).std()
             #print len(filter_data)
             #print type(data[i])
-            #print data[i]
         #w.save('time_diff_result.xls')
+        #return
+        generate_timestamp_std_image_single_statsion_compare(std_map,dir_path,int(count))
         std_image = generate_timestamp_std_image(std_map,dir_path)
         raw_data.insert_image(0,0,std_image)
         w.close()
@@ -405,11 +440,11 @@ def write_data(data,select_array,global_min,global_max,dir_path,min_,max_):
         traceback.print_exc()
 
 
-def write_data_to_excel(file,dir_path,min_,max_):
-    data, select_array = parse_timestamp_data(dir_path + 'aa.csv',dir_path)
+def write_data_to_excel(file,dir_path,min_,max_,start,count):
+    data, select_array,data_map = parse_timestamp_data(dir_path + 'aa.csv',dir_path,start,count)
     global_min, global_max = get_max_min(data)
 
-    write_data(data,select_array,global_min,global_max,dir_path,min_,max_)
+    write_data(data,select_array,global_min,global_max,dir_path,min_,max_,count)
     generate_zipfile(dir_path)
 
 def add_col_image(ws,col_data):
@@ -417,8 +452,33 @@ def add_col_image(ws,col_data):
 
 def test_time_profile():
     print "ddd"
+test_single_map = {"table0_1": 81.912259345896288, "table0_2": 82.875007302170147, "table0_3": 81.823768813909496, "table0_4": 76.38040460524212, "table0_5": 78.699921922535864, "table1_2": 79.943453806808506, "table1_3": 84.884606687089573, "table1_4": 80.140806172528045, "table1_5": 80.71318828316393, "table2_3": 86.913497520126384, "table2_4": 81.916965652346747, "table2_5": 82.074041210445955, "table3_4": 80.977783639300426, "table3_5": 82.390622900645511, "table4_5": 72.585406460458657}
 
 test_map = {0: 81.912259345896288, 1: 82.875007302170147, 2: 81.823768813909496, 3: 76.38040460524212, 4: 78.699921922535864, 5: 79.943453806808506, 6: 84.884606687089573, 7: 80.140806172528045, 8: 80.71318828316393, 9: 86.913497520126384, 10: 81.916965652346747, 11: 82.074041210445955, 12: 80.977783639300426, 13: 82.390622900645511, 14: 72.585406460458657}
+def generate_timestamp_std_image_single_statsion_compare(data,dir_path,count,image_type = None):
+    li = generate_list_item(count)
+    for i in xrange(count):
+        plt.figure(figsize=(11,6))
+        x,y = [],[]
+        for d,key in enumerate(sorted(data)):
+            if i in li[d]:
+                for t in li[d]:
+                    if t != i:
+                        x.append(t)
+                        y.append(data[key])
+        plt.plot(x, y, 'ro')
+        plt.margins(0.05)
+        plt.title( u"以%s号基站为基准的时间戳差分析"%i,fontproperties=zhfont1)
+        plt.xlabel(u"另外一个基站编号",fontproperties=zhfont1)
+        plt.ylabel(u"时间戳差",fontproperties=zhfont1)
+        if image_type == "png":
+            plt.savefig(dir_path + 'single%s_diff_std.png'%i,dpi=1000, format='png')
+        else:
+            plt.savefig(dir_path + 'single%s_diff_std.png'%i,dpi=1000, format='png')
+            plt.savefig(dir_path + 'single%s_diff_std.svg'%i,format='svg', dpi=1200)
+        plt.close()
+        #plt.show()
+
 
 def generate_timestamp_std_image(map_data,dir_path,image_type = None):
     plt.figure(figsize=(11,6))
@@ -432,8 +492,10 @@ def generate_timestamp_std_image(map_data,dir_path,image_type = None):
     plt.title( u"两个基站时间戳差分析系统测距误差范围",fontproperties=zhfont1)
     plt.xlabel(u"两个基站对比编号",fontproperties=zhfont1)
     plt.ylabel(u"时间戳差",fontproperties=zhfont1)
-    l = plt.axhline(y=np.array(y).mean(),linewidth=2, color='g')
-    l.set_label("test")
+    l = plt.axhline(y=np.array(y).mean(),linewidth=2, color='b')
+    #l = plt.axhline(y=np.array(y).mean() + unit,linewidth=2, color='g')
+    #l = plt.axhline(y=np.array(y).mean() - unit,linewidth=2, color='r')
+    #l.set_label("test")
     #plt.show()
     if image_type == "png":
         plt.savefig(dir_path + 'timestamp_diff_std.png',dpi=1000, format='png')
@@ -443,6 +505,8 @@ def generate_timestamp_std_image(map_data,dir_path,image_type = None):
     plt.close()
     return 'timestamp_diff_std.png'
 
+#parse_timestamp_data("./Record.csv","dd")
+#generate_timestamp_std_image_single_statsion_compare(test_map,"./",6)
 
 #generate_timestamp_std_image(test_map)
 #generate_list_item()

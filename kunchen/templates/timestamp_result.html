@@ -17,6 +17,12 @@
 </div>
     
     <embed src="/static/{{dir}}timestamp_diff_std.svg" type="image/svg+xml" />
+    {% for s in single_tables %}
+        <embed src="/static/{{dir}}single{{s}}_diff_std.svg" type="image/svg+xml" />
+    {% endfor %}
 
+    {% for item in tables %}
+        <embed src="/static/{{dir}}{{item}}.svg" type="image/svg+xml" />
+    {% endfor %}
 </body>
 </html>

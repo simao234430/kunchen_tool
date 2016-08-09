@@ -1,6 +1,8 @@
 #-*- coding: utf-8 -*-
 #from pyExcelerator import *
 #from mayavi import mlab
+import platform
+import sys
 import zipfile  
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
@@ -29,8 +31,10 @@ from django.conf import settings
 from pylab import *
 import matplotlib.patches as mpatches
 
-zhfont1 = matplotlib.font_manager.FontProperties(fname=u'/usr/share/fonts/华文细黑.ttf')
-#zhfont1 = matplotlib.font_manager.FontProperties(fname=u'/Library/Fonts/华文细黑.ttf')
+if platform.system() == "Linux":
+    zhfont1 = matplotlib.font_manager.FontProperties(fname=u'/usr/share/fonts/华文细黑.ttf')
+elif platform.system() == "Darwin":
+    zhfont1 = matplotlib.font_manager.FontProperties(fname=u'/Library/Fonts/华文细黑.ttf')
 
 def set_ch():
     from pylab import mpl
@@ -472,7 +476,7 @@ def generate_zipfile(dir_path):
                 f.write(dir_path + filename)
     f.close()  
      
-generate_zipfile('/home/xiaojun/python_code/tool/data_analysis/kunchen/static/ca8b1ad0-530b-11e6-b8b9-00163e002270/')
+#generate_zipfile('/home/xiaojun/python_code/tool/data_analysis/kunchen/static/ca8b1ad0-530b-11e6-b8b9-00163e002270/')
 def analysis_postion_data(file_path,dir_path,min_precision,max_precision):
     #data = parse_postion_data(file_path)
     data = parse_postion_data(dir_path + 'aa.csv')

@@ -65,11 +65,18 @@ def timestamp(request):
             print temp_dir
             min_precision = request.POST['inputmin']
             max_precision = request.POST['inputmax']
+            start = request.POST['input_start']
+            count = request.POST['input_count']
             f = request.FILES['inputfile']
+            tables = []
+            single_tables = xrange(int(count))
+            for i in generate_list_item(int(count)):
+                s = "table" + str(i[0]) + "_" + str(i[1])
+                tables.append(s)
             handle_uploaded_file(temp_dir,f)
 
-            write_data_to_excel(settings.SETTINGS_PATH + '/Record.csv',settings.SETTINGS_PATH + "/static/" + temp_dir,min_precision,max_precision)
-            return render(request, 'timestamp_result.html',{'dir':temp_dir})
+            write_data_to_excel(settings.SETTINGS_PATH + '/Record.csv',settings.SETTINGS_PATH + "/static/" + temp_dir,min_precision,max_precision,start,count)
+            return render(request, 'timestamp_result.html',{'dir':temp_dir,"tables":tables,"single_tables":single_tables})
 
             file_path = settings.SETTINGS_PATH + '/time_diff_result.xls'
             response = StreamingHttpResponse(FileWrapper(open(file_path), 8192), content_type='application/vnd.ms-excel')
@@ -79,6 +86,8 @@ def timestamp(request):
             #return HttpResponse('success handler')
         else:
             return render_to_response('timestamp.html')
+    except FileException, e:
+        return HttpResponse(str(e))
     except Exception, e:
         print "excp", e
         traceback.print_exc()
