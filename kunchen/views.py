@@ -92,3 +92,21 @@ def timestamp(request):
         print "excp", e
         traceback.print_exc()
         response(str(e))
+
+def timestamp2(request):
+    try:
+        if request.method == 'POST':
+            start = request.POST['input_start']
+            count = request.POST['input_count']
+            num = request.POST['input_value']
+            f = request.FILES['inputfile']
+            result = write_data(f,start,count,num)
+            return render(request, 'timestamp_result2.html',{"result":result})
+        else:
+            return render_to_response('timestamp2.html')
+    except FileException, e:
+        return HttpResponse(str(e))
+    except Exception, e:
+        print "excp", e
+        traceback.print_exc()
+        response(str(e))

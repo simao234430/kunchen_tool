@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     #url(r'^tool/', views.test),
     url(r'^tool/position', views.postion),
-    url(r'^tool/timestamp', views.timestamp),
+    url(r'^tool/timestamp$', views.timestamp),
+    url(r'^tool/timestamp2$', views.timestamp2),
     url(r'^tool/test', views.test),
 ]

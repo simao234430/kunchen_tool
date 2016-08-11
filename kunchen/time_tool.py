@@ -505,6 +505,34 @@ def generate_timestamp_std_image(map_data,dir_path,image_type = None):
     plt.close()
     return 'timestamp_diff_std.png'
 
+def write_data(f,start,count,num):
+        result = {}
+        base_num = int(num) 
+        start_para = int(start)
+        end_para = int(start) + int(count)
+        col = range(max_value) 
+        use_cols = col[start_para:end_para]
+        df= pd.read_csv(f,usecols = use_cols,header=None)
+        # 下面2行 由于保留小数点后面三位 整体转换为int类型 方便计算
+        float_data = df.applymap(lambda x: x*1000) 
+        data = float_data.astype('int64')
+        for i in col[start_para +1:end_para]:
+            count_all = 0
+            diff_count = 0 
+            diff = two_list_sub(data[i].tolist(),data[start_para])
+            for index in xrange(len(diff) - 1):
+                diff_value = diff[index +1] - diff[index]
+                count_all = count_all + 1
+                if abs(diff_value) < 200:
+                    diff_count = diff_count + 1
+            #print count_all,diff_count
+            result[i] = float(diff_count)/float(count_all)
+            #print result[i]
+        #print result
+        return result
+        
+
+#write_data("./Record.csv",7,6)
 #parse_timestamp_data("./Record.csv","dd")
 #generate_timestamp_std_image_single_statsion_compare(test_map,"./",6)
 
