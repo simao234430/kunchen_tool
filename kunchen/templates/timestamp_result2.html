@@ -9,13 +9,26 @@
     <script src="/static/js/js/lib/jquery/dist/jquery.min.js"></script>
     <script src="/static/js/js/lib/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="/static/js/spin.js"></script>
+    <link href="/static/js/js/lib/bootstrap/dist/css/bootstrap.css"  rel="stylesheet" type="text/css">
 </head>
 <body>
 <div class="btn-group">
 </div>
     
+输出说明:基站时间差误差落在范围内的概率大于0.8是优<P>
+    大于0.7小于0.8是好 小于0.7是等级差<p>
     {% for key,value in result.items %}
-    基站{{ key }}的符合概率比例是{{value}}<P>
+    基站{{ key }}的符合概率比例是{{value}}
+        {% if value < 0.8 %}
+            {% if value > 0.7 %}
+        <button type="button" class="btn btn-info">好</button>
+            {% else %}
+        <button type="button" class="btn btn-danger">差</button>
+            {% endif %}
+        {% else %}
+        <button type="button" class="btn btn-success">优</button>
+        {% endif %}
+    <P>
     {% endfor %}
 
 </body>
