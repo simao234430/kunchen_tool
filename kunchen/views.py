@@ -1,9 +1,12 @@
+#-*-coding:utf-8-*-
+import re
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.shortcuts import render
 import os
 from django import forms
 from django.http import HttpResponse, StreamingHttpResponse
+from django.utils.datastructures import MultiValueDictKeyError
 from tool import * 
 from wsgiref.util import FileWrapper
 from django.conf import settings
@@ -106,6 +109,32 @@ def timestamp2(request):
             return render_to_response('timestamp2.html')
     except FileException, e:
         return HttpResponse(str(e))
+    except Exception, e:
+        print "excp", e
+        traceback.print_exc()
+        response(str(e))
+
+def timestamp3(request):
+    try:
+        if request.method == 'POST':
+            temp_dir = generate_temp_dir()
+            f =  request.FILES['inputfile']
+            handle_uploaded_file(temp_dir,f)
+
+
+            count = request.POST['input_count']
+            start = str(request.POST['input_ip'])
+            index_li =  re.split('[!?, ]',count)
+            print index_li
+            #print settings.SETTINGS_PATH + "/static/" + temp_dir +  'aa.csv'
+            rate_pattern,pattern,result,miss_result = process3(settings.SETTINGS_PATH + "/static/" + temp_dir + "aa.csv",index_li,start)
+            return render(request, 'timestamp_result3.html',{"rate_pattern":rate_pattern,\
+                    "pattern":pattern,"result":result,"miss_result":miss_result})
+        else:
+            return render_to_response('timestamp3.html')
+        return HttpResponse(str(e))
+    except MultiValueDictKeyError, e:
+        return HttpResponse(u"请输入要分析的文件")
     except Exception, e:
         print "excp", e
         traceback.print_exc()

@@ -1,5 +1,6 @@
 #-*- coding: utf-8 -*-
 #from pyExcelerator import *
+import re
 from xlsxwriter import *
 from numpy import *
 import operator
@@ -30,11 +31,32 @@ from tool import covert_image_format,get_mean_and_var,zhfont1,generate_zipfile
 #import tool
 import time
 
+def block(file,size=65536):
+    while True:
+        nb = file.read(size)
+        if not nb:
+           break
+        yield nb
+def getLineCount(filename):
+    with open(filename,"r",buffering=-1) as f:
+        return sum(line.count("\n") for line in block(f))
+
+class FileNeedUploadException(Exception):
+    def __init__(self):
+        pass
+    def __str__(self):
+        return "分析文件没有输入,请检查"
 class FileException(Exception):
     def __init__(self):
         pass
     def __str__(self):
         return "文件输入格式不对，请检查"
+    
+class LineCountException(Exception):
+    def __init__(self):
+        pass
+    def __str__(self):
+        return "基站总个数和文件输入不符合，请检查"
 
 #class Timer(object):
 #    def __init__(self, verbose=False):
@@ -530,7 +552,115 @@ def write_data(f,start,count,num):
             #print result[i]
         #print result
         return result
-        
+
+index_li = [u'1',u'2', u'4', u'5', u'3']
+def cut_unicode(li):
+    result = []
+    for i in li:
+        ii = str(i)
+        result.append(ii)
+    return result
+
+def process3(f,index_li,start):
+    #bool_all_dic = {}
+    pattern = {}
+    rate_pattern = {}
+    index_li = cut_unicode(index_li)
+    cut_li = index_li
+    lines = getLineCount(f)
+    input_dic = {}
+    for i in index_li:
+        input_dic[i] = [0] * lines
+    #print input_dic
+    data = pd.DataFrame(input_dic)
+    #print data
+    line_no = 0
+    with open(f) as file:
+        for line in file:
+            #print line_no
+            line = line.strip('\r\n')
+            temp = re.split(",",line)
+            temp_dic = {}
+            for i,e in enumerate(temp[0:6]):
+            #for i,e in enumerate(temp[0:20]):
+                if e != '0':
+                    #print i ,e
+                    temp_dic[unicode(e,"utf-8")] = i 
+                    if e in cut_li:
+                        cut_li.remove(e)
+                    #bool_all_dic[unicode(e,"utf-8")] = True
+            #print temp_dic.keys()
+            if frozenset(temp_dic.keys()) in pattern.keys():
+                pattern[frozenset(temp_dic.keys())] = pattern[frozenset(temp_dic.keys())] + 1
+            else:
+                pattern[frozenset(temp_dic.keys())] = 1
+            #print temp_dic
+            #print data.loc[line_no]
+            for i in temp_dic.keys():
+                #print i,data.loc[line_no][i]
+                #print temp[21 + temp_dic[i]]
+                data.loc[line_no][i] = int( float(temp[21 + temp_dic[i]]) * 1000)
+                #data.loc[line_no][i] = int( float(temp[21 + temp_dic[i]]) * 1000)
+            line_no = line_no + 1
+            #print data.loc[line_no]
+    for e in pattern.keys():
+        rate_pattern[e] = float(pattern[e]) / float(lines)
+
+    print cut_li
+    for i in cut_li:
+        del data[i]
+    print data.columns
+
+    result = {}
+    miss_result = {}
+    for i in list(data.columns):
+        print "column", i
+        count_all = 0
+        diff_count = 0 
+        miss_count = 0
+        temp_list = []
+        #print type(i),i
+        if i == start:
+            print "continue"
+            continue
+        for index, row in data.iterrows():
+            #print index, row
+            if row[i] == 0:
+                miss_count = miss_count + 1
+                continue
+            diff_value = int(row[i] - row[start])
+            temp_list.append(diff_value)
+            count_all = count_all + 1
+        for index ,e in enumerate(temp_list):
+            if index == 0:
+                continue
+            #print temp_list[index] ,temp_list[index - 1]
+            temp_diff = int(temp_list[index]) - int(temp_list[index - 1])
+            if temp_diff > -200 and temp_diff  < 200:
+                diff_count = diff_count + 1
+            else:
+                pass
+                #print "haha"
+
+        #diff = two_list_sub(data[i].tolist(),data[start])
+        #for index in xrange(len(diff) - 1):
+        #    count_all = count_all + 1
+        #    if abs(diff_value) < 200:
+        #        diff_count = diff_count + 1
+        ##print count_all,diff_count
+        #print diff_count,count_all
+        result[i] = float(diff_count)/float(count_all)
+        miss_result[i] = float(miss_count)/float(lines)
+        #print result[i]
+    #print result
+    #print all_dic
+    #print rate_pattern,pattern 
+    #print rate_pattern,pattern,result,miss_result
+    return rate_pattern,pattern,result,miss_result
+
+#index_li=[11,12,13,14,15,16]
+#start = '1'
+#process3('./Record5.csv',index_li,'11')
 
 #write_data("./Record.csv",7,6)
 #parse_timestamp_data("./Record.csv","dd")

@@ -50,16 +50,14 @@ return true;
 
 
     <div id="center">
-        <h1>时间戳数据分析</h1>
-        <form id="Form1" action="#" method="post" enctype="multipart/form-data" >
-        输入精度最小值 <input type="text" value="1" name="inputmin"    class="form-control" /><P>
-        输入精度最大值 <input type="text" value="5" name="inputmax"    class="form-control"/><p>
-        输入数据开始列<input type="text" value="7" name="input_start"  class="form-control"/><P>
-        输入基站总个数<input type="text" value="6" name="input_count"  class="form-control"/><P>
+        <h1>时间戳单个基站基准数据分析版本三</h1>
+        <form id="Form3" action="#" method="post" enctype="multipart/form-data" >
+        输入基站总个数的列表<input type="text" value="6" name="input_count"  class="form-control"/><P>
+        输入base基站ip<input type="text" value="21" name="input_ip"  class="form-control"/><P>
         <br /> 
-	    <input type="file" name="inputfile" class="input-large" />
+        选择要分析的文件<input type="file" name="inputfile">
         <input type="submit" value="返回时间戳分析结果" class="btn btn-success" /> 
-        </form> 
+        </form>
     </div>
   </body>
 </html>

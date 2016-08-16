@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^tool/position', views.postion),
     url(r'^tool/timestamp$', views.timestamp),
     url(r'^tool/timestamp2$', views.timestamp2),
+    url(r'^tool/timestamp3$', views.timestamp3),
     url(r'^tool/test', views.test),
 ]
