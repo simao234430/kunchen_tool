@@ -127,9 +127,10 @@ def timestamp3(request):
             index_li =  re.split('[!?, ]',count)
             print index_li
             #print settings.SETTINGS_PATH + "/static/" + temp_dir +  'aa.csv'
-            rate_pattern,pattern,result,miss_result = process3(settings.SETTINGS_PATH + "/static/" + temp_dir + "aa.csv",index_li,start)
+            rate_pattern,pattern,result,miss_result,none_data_columns = process3(settings.SETTINGS_PATH + "/static/" + temp_dir + "aa.csv",index_li,start)
+            print rate_pattern,pattern,result,miss_result
             return render(request, 'timestamp_result3.html',{"rate_pattern":rate_pattern,\
-                    "pattern":pattern,"result":result,"miss_result":miss_result})
+                    "pattern":pattern,"result":result,"miss_result":miss_result,"none_data_columns":none_data_columns})
         else:
             return render_to_response('timestamp3.html')
         return HttpResponse(str(e))

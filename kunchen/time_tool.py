@@ -553,7 +553,7 @@ def write_data(f,start,count,num):
         #print result
         return result
 
-index_li = [u'1',u'2', u'4', u'5', u'3']
+#index_li = [u'1',u'2', u'4', u'5', u'3']
 def cut_unicode(li):
     result = []
     for i in li:
@@ -566,7 +566,7 @@ def process3(f,index_li,start):
     pattern = {}
     rate_pattern = {}
     index_li = cut_unicode(index_li)
-    cut_li = index_li
+    cut_li = list(index_li)
     lines = getLineCount(f)
     input_dic = {}
     for i in index_li:
@@ -581,7 +581,7 @@ def process3(f,index_li,start):
             line = line.strip('\r\n')
             temp = re.split(",",line)
             temp_dic = {}
-            for i,e in enumerate(temp[0:6]):
+            for i,e in enumerate(temp[0:20]):
             #for i,e in enumerate(temp[0:20]):
                 if e != '0':
                     #print i ,e
@@ -655,12 +655,15 @@ def process3(f,index_li,start):
     #print result
     #print all_dic
     #print rate_pattern,pattern 
-    #print rate_pattern,pattern,result,miss_result
-    return rate_pattern,pattern,result,miss_result
+    print index_li
+    print cut_li
+    none_data_columns = list(set(index_li).difference(set(cut_li)))
+    print rate_pattern,pattern,result,miss_result,cut_li
+    return rate_pattern,pattern,result,miss_result,cut_li
 
-#index_li=[11,12,13,14,15,16]
+#index_li=[11,12,13,14,21,22,23,24]
 #start = '1'
-#process3('./Record5.csv',index_li,'11')
+#process3('./test.csv',index_li,'11')
 
 #write_data("./Record.csv",7,6)
 #parse_timestamp_data("./Record.csv","dd")
