@@ -661,9 +661,9 @@ def process3(f,index_li,start):
     print rate_pattern,pattern,result,miss_result,cut_li
     return rate_pattern,pattern,result,miss_result,cut_li
 
-#index_li=[11,12,13,14,21,22,23,24]
+index_li=[11,21,31,41]
 #start = '1'
-#process3('./test.csv',index_li,'11')
+process3('./Record',index_li,'11')
 
 #write_data("./Record.csv",7,6)
 #parse_timestamp_data("./Record.csv","dd")
